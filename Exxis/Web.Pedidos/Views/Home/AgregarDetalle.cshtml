@@ -1,0 +1,183 @@
+﻿
+@{
+    ViewBag.Title = "Datos de Cabecera";
+}
+
+
+<h2>Definir Detalles del Pedido</h2>
+<br />
+
+<h4><strong> @ViewBag.DatosCliente</strong></h4>
+
+
+<hr />
+@Html.Hidden("hidIDCAB", (object)ViewBag.IDCAB, new { id = "hidIDCAB" })
+@Html.Hidden("hidCodCli", (object)ViewBag.CODCLI, new { id = "hidCodCli" })
+@Html.Hidden("hidCant", (object)ViewBag.CANTIDAD, new { id = "hidCant" }) 
+
+<div class="form-group row">
+    <label for="txtCodArticulo">CodArticulo</label>
+    <input type="text" class="form-control" id="txtCodArticulo">
+
+</div>
+<div class="form-group row">
+    <label for="txtDescripcion">Descripcion</label>
+    <input type="text" class="form-control" id="txtDescripcion">
+
+</div>
+<div class="form-group row">
+    <label for="txtCantidad">Cantidad</label>
+    <input type="text" class="form-control" id="txtCantidad">
+
+</div>
+<div class="form-group row">
+    <label for="txtPrecioUnitario">Precio Unitario</label>
+    <input type="text" class="form-control" id="txtPrecioUnitario">
+
+</div>
+<div class="form-group row">
+    <label for="txtTotal">Total</label>
+    <input type="text" class="form-control" id="txtTotal">
+
+</div>
+<button type="button" onclick="GuardarDatos(); return false;" class="btn btn-primary">Guardar Detalle</button>
+<button type="button" id="btntoList" class="btn btn-danger">Ir al listado</button>
+<br />
+<h4><strong> Lista Detalle</strong></h4>
+<div id="divLista" class="row">
+    <div class="col-md-12">
+        <table id="tblDatos" class="table table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">CodArticulo</th>
+                    <th scope="col">Descripcion</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">PrecioUnitario</th>
+                    <th scope="col">Total</th>
+                </tr>
+            </thead>
+            <tbody id="tbDet"> 
+                @Html.Raw(ViewBag.RowData)
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+@Html.Hidden("RedirectTo", Url.Action("Index", "Home"))
+
+<div class="modal" id="ModalMensajes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">EXXIS </h4>
+
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                <p> <span id="spanTEXTO"></span></p>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="GotoIndex();" id="btnOK">OK</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts{
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+          //  $("#divLista").hide();
+
+
+            $("#btntoList").click(function () {
+                GotoIndex();
+            });
+            $('#txtPrecioUnitario').blur(function () {
+                $('#txtTotal').val($('#txtPrecioUnitario').val() * $('#txtCantidad').val()) 
+            });
+            $('#txtTotal').attr('disabled', '');
+        });
+
+       
+        function limpiar() { 
+
+            $('#txtCodArticulo').val("");
+            $('#txtDescripcion').val("");
+            $('#txtCantidad').val("");
+            $('#txtPrecioUnitario').val("");
+            $('#txtTotal').val("");
+        }
+        function GuardarDatos() {
+
+            var UserData = {
+                IdCab: $('#hidIDCAB').val(),
+                CodCliente: $('#hidCodCli').val(),
+                CodArticulo: $('#txtCodArticulo').val(),
+                Descripcion: $('#txtDescripcion').val(),
+                Cantidad: $('#txtCantidad').val(),
+                PrecioUnitario: $('#txtPrecioUnitario').val(),
+                Total: $('#txtTotal').val(),
+                TotalCab: $('#hidCant').val()
+            } 
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("AgregarDetalle", "Home")",
+                contentType: "application/json",
+                data: JSON.stringify({ detalle: UserData }),
+                dataType: "json",
+                success: function (response) { 
+                   
+                    if (!response.HasError) {
+                        var row = '<tr>' +
+                            '<td>' + $('#txtCodArticulo').val() + ' </td>' +
+                            '<td>' + $('#txtDescripcion').val() + '  </td>' +
+                            '<td>' + $('#txtCantidad').val() + ' </td>' +
+                            '<td>' + formatNumber($('#txtPrecioUnitario').val()) + ' </td>' +
+                            '<td>' + formatNumber($('#txtTotal').val()) + ' </td>' +
+                             '</tr>'; 
+                        $("#tbDet").append(row); 
+                        limpiar();
+                    }
+                    else {
+                        Mensaje(response.Msg);
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        alet("Session Expirada");
+
+                        return;
+                    }
+                },
+                complete: function () {
+                    //  apagar loader
+                }
+            });
+        }
+
+        function Mensaje(msg) {
+            $('#spanTEXTO').text(msg);
+            $('#ModalMensajes').appendTo("body").modal('show');
+        }
+
+        function GotoIndex() {
+            var url = $("#RedirectTo").val();
+            window.location.href = url;
+        }
+    </script>
+
+}

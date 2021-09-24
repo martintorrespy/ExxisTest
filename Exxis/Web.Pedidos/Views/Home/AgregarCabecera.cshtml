@@ -1,0 +1,169 @@
+﻿
+@{
+    ViewBag.Title = "Datos de Cabecera";
+}
+
+
+<h2>Definir Datos de Cabecera</h2>
+
+<hr />
+
+
+<div class="form-group row">
+    <label for="txtCodCliente">CodCliente</label>
+    <input type="text" class="form-control" id="txtCodCliente">
+
+</div>
+<div class="form-group row">
+    <label for="txtNombreCliente">Nombre Cliente</label>
+    <input type="text" class="form-control" id="txtNombreCliente">
+
+</div>
+<div class="form-group row">
+    <label for="txtFechaPedido">Fecha Pedido</label>
+    <input type="date" class="form-control" id="txtFechaPedido">
+
+</div>
+<div class="form-group row">
+    <label for="txtFechaEntrega">Fecha Entrega</label>
+    <input type="date" class="form-control" id="txtFechaEntrega">
+
+</div>
+<div class="form-group row">
+    <label for="txtVendedor">Vendedor</label>
+    <input type="text" class="form-control" id="txtVendedor">
+
+</div>
+<div class="form-group row">
+    <label for="cboMoneda">Moneda</label>
+    <select id="cboMoneda" class="form-control">
+        <option selected>Guaranies</option>
+        <option>Dolares</option>
+        <option>BitCoin</option>
+    </select>
+
+</div>
+
+
+<div class="form-group row">
+    <label for="txtTotal">Total</label>
+    <input type="text" class="form-control" id="txtTotal">
+
+</div>
+
+@Html.Hidden("RedirectTo", Url.Action("Index", "Home"))
+<button type="button" onclick="GuardarDatos(); return false;" class="btn btn-primary">Guardar Datos</button>
+
+
+<div class="modal" id="ModalMensajes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">EXXIS </h4>
+
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                <p> <span id="spanTEXTO"></span></p>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="GotoIndex();" id="btnOK">OK</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+          //  alert(" listo jquery !!");
+
+            //Mensaje("OP");
+            var lafecha = new Date();
+            //Format the date value
+            var formattedDate = lafecha.toISOString().substr(0, 10);
+            $('#txtFechaPedido').val(formattedDate);
+            $('#txtFechaEntrega').val(formattedDate);   
+            $("#btnOK").click(function () {
+                GotoIndex();
+            });
+            $('#txtCodCliente').blur(function () {
+                $('#txtCodCliente').attr('disabled', '');
+            });
+        });
+
+
+        function Mensaje(msg) {
+            $('#spanTEXTO').text(msg);
+            $('#ModalMensajes').appendTo("body").modal('show');
+        }
+
+        function GotoIndex() {
+            var url = $("#RedirectTo").val();
+            window.location.href = url;
+        }
+
+        function CargarDatosCabecera() {
+            $('#ModalAgregarCab').appendTo("body").modal('show');
+        }
+
+        function GuardarDatos() {
+            //if ($('#txtNroCI').val() == '') {
+            //    Mensaje('Para realizar una busqueda ingresar Nro C.I');
+            //    return false;
+            //}
+
+            var UserData = {
+                CodCliente  : $('#txtCodCliente').val(),
+                NombreCliente: $('#txtNombreCliente').val(),
+                FechaPedido: $('#txtFechaPedido').val(),
+                FechaEntrega: $('#txtFechaEntrega').val(),
+                Vendedor: $('#txtVendedor').val(),
+                Moneda: $("#cboMoneda option:selected").text(),
+                Total: $('#txtTotal').val()
+            }
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("AgregarCabecera", "Home")",
+                contentType: "application/json",
+                data: JSON.stringify({ cabeceraPedido: UserData }),
+                dataType: "json",
+                success: function (response) {
+                    if (!response.hasError) {                       
+                        Mensaje(response.Msg);  
+                    }
+                    else {
+                        Mensaje(response.Msg);
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        alet("Session Expirada");
+
+                        return;
+                    }
+                },
+                complete: function () {
+                    //  apagar loader
+                }
+            });
+        }
+
+
+
+    </script>
+}
+
+
+
+
